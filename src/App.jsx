@@ -1,12 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AVENGERS, MISSIONS } from './data';
+import { useCommandEngine } from './state/store';
+import { SCENARIOS, buildIncidentBrief } from './state/engine';
 import Dashboard from './components/Dashboard';
 import Database from './components/Database';
 import TeamBuilder from './components/TeamBuilder';
 import MissionControl from './components/MissionControl';
 import Battle from './components/Battle';
+import CommandCenter from './components/CommandCenter';
+import CommandPalette from './components/CommandPalette';
 
 const TABS = [
+  { id: 'threatgrid', label: 'THREAT GRID', icon: '◬' },
   { id: 'dashboard', label: 'COMMAND', icon: '◈' },
   { id: 'database', label: 'AVENGERS DB', icon: '◉' },
   { id: 'team', label: 'TEAM FORMATION', icon: '⬡' },
@@ -35,6 +40,9 @@ export default function App() {
   const [assignments, setAssignments] = useState(() => load('aegis-assignments', {}));
   const [clock, setClock] = useState(new Date());
   const [battlePreset, setBattlePreset] = useState(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [alertFilter, setAlertFilter] = useState('ALL');
+  const engine = useCommandEngine();
 
   // page background image per tab
   useEffect(() => {
@@ -106,7 +114,89 @@ export default function App() {
     setMissions(MISSIONS);
     setTeam([]);
     setAssignments({});
+    engine.reset();
   };
+
+  // ---- command palette ----
+  const downloadBrief = useCallback(() => {
+    const md = buildIncidentBrief(engine.state);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `aegis-incident-${engine.state.scenario}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [engine.state]);
+
+  const commands = useMemo(() => {
+    const list = [];
+    for (const s of Object.values(SCENARIOS)) {
+      list.push({
+        id: `sc-${s.id}`, icon: '◈', label: `Inject scenario: ${s.label}`, hint: 'threatgrid',
+        keywords: 'scenario inject threat attack demo reset posture',
+        run: () => { engine.injectScenario(s.id); setTab('threatgrid'); },
+      });
+    }
+    list.push({ id: 'reset', icon: '⟲', label: 'Reset system to NOMINAL OPS', keywords: 'reset restore clear', run: resetSystem });
+    list.push({ id: 'export', icon: '⬇', label: 'Export incident brief (Markdown)', keywords: 'export brief report download markdown', run: downloadBrief });
+    for (const t of TABS) {
+      list.push({ id: `tab-${t.id}`, icon: t.icon, label: `Go to ${t.label}`, keywords: 'navigate tab view', run: () => setTab(t.id) });
+    }
+    for (const sev of ['ALL', 'CRITICAL', 'EMERGENCY', 'WARNING', 'INFO']) {
+      list.push({
+        id: `flt-${sev}`, icon: '◫', label: `Filter alerts: ${sev === 'ALL' ? 'ALL SEVERITIES' : sev}`, keywords: 'filter severity alerts',
+        run: () => { setAlertFilter(sev); setTab('threatgrid'); },
+      });
+    }
+    for (const n of engine.state.nodes) {
+      list.push({
+        id: `node-${n.id}`, icon: '⬡', label: `Inspect node: ${n.name}`, hint: n.status,
+        keywords: `node sector ${n.sector} ${n.status.toLowerCase()}`,
+        run: () => { engine.select('node', n.id); setTab('threatgrid'); },
+      });
+    }
+    for (const a of engine.state.alerts) {
+      const node = engine.state.nodes.find(n => n.id === a.nodeId);
+      if (a.status !== 'ACTIVE') continue;
+      list.push({
+        id: `alert-${a.id}`, icon: '⚠', label: `Inspect alert: ${a.title}`, hint: a.severity,
+        keywords: `alert ${a.severity.toLowerCase()} ${node?.name || ''}`,
+        run: () => { engine.select('alert', a.id); setTab('threatgrid'); },
+      });
+      list.push({
+        id: `ack-${a.id}`, icon: '◦', label: `Acknowledge alert: ${a.title}`, keywords: 'acknowledge ack alert',
+        run: () => engine.acknowledge(a.id),
+      });
+      const pb = a.playbook;
+      list.push({
+        id: `mit-${a.id}`, icon: '▸', label: `Execute ${pb} on ${node?.name || 'node'}`, hint: 'playbook',
+        keywords: `mitigate ${pb.toLowerCase()} playbook response isolate contain reroute diagnose`,
+        run: () => { engine.mitigate(a.nodeId, pb, a.id); setTab('threatgrid'); },
+      });
+    }
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engine.state, engine, missions]);
+
+  // global palette hotkeys: Ctrl/Cmd+K or /
+  useEffect(() => {
+    const onKey = (e) => {
+      const tag = document.activeElement?.tagName;
+      const typing = tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen(o => !o);
+      } else if (e.key === '/' && !typing) {
+        e.preventDefault();
+        setPaletteOpen(true);
+      } else if (e.key === 'Escape') {
+        setPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   return (
     <div className="app">
@@ -126,6 +216,7 @@ export default function App() {
         <div className="topbar-right">
           <div className="clock">{clock.toLocaleTimeString()} UTC</div>
           <div className="clearance">LEVEL 10 CLEARANCE</div>
+          <button className="btn btn-small" onClick={() => setPaletteOpen(true)}>⌘K COMMANDS</button>
           <button className="btn btn-small btn-reset" onClick={resetSystem}>⟲ RESET SYSTEM</button>
         </div>
       </header>
@@ -144,6 +235,9 @@ export default function App() {
       </nav>
 
       <main className="main">
+        {tab === 'threatgrid' && (
+          <CommandCenter engine={engine} onOpenPalette={() => setPaletteOpen(true)} alertFilter={alertFilter} setAlertFilter={setAlertFilter} />
+        )}
         {tab === 'dashboard' && (
           <Dashboard missions={missions} team={team} assignMission={quickDeploy} onSelectMission={() => setTab('missions')} />
         )}
@@ -181,7 +275,14 @@ export default function App() {
         <span>AEGIS COMMAND SYSTEM v3.7</span>
         <span>CLASSIFIED // EYES ONLY</span>
         <span>{AVENGERS.length} HEROES INDEXED · {missions.filter(m => m.status !== 'Completed').length} ACTIVE THREATS</span>
+        <span className="tabular">GRID: {engine.metrics.systemStatus} · THREAT {engine.metrics.threatIndex}</span>
       </footer>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        commands={commands}
+      />
     </div>
   );
 }

@@ -15,6 +15,7 @@ export default function Battle({ team, missions = [], assignments = {}, initialM
   const [log, setLog] = useState([]);
   const [running, setRunning] = useState(false);
   const [outcome, setOutcome] = useState(null); // 'victory' | 'defeat' | null
+  const [resultDismissed, setResultDismissed] = useState(false);
   const [combatEffect, setCombatEffect] = useState(null); // { actor, target, type }
   const [analytics, setAnalytics] = useState([]);
   const logRef = useRef(null);
@@ -26,6 +27,7 @@ export default function Battle({ team, missions = [], assignments = {}, initialM
     setBattle(null);
     setLog([]);
     setOutcome(null);
+    setResultDismissed(false);
     setCombatEffect(null);
     setAnalytics([]);
   };
@@ -58,6 +60,7 @@ export default function Battle({ team, missions = [], assignments = {}, initialM
     setRunning(true);
     setLog([]);
     setOutcome(null);
+    setResultDismissed(false);
     setCombatEffect(null);
     setAnalytics([]);
     const heroes = squad.map(id => AVENGERS.find(a => a.id === id));
@@ -251,7 +254,7 @@ export default function Battle({ team, missions = [], assignments = {}, initialM
               </div>
               <div className="clash-impact"><span className="clash-star">✦</span></div>
               <div className="clash-side clash-avengers">
-                <img src={`${import.meta.env.BASE_URL}battle/avengers.jpg`} alt="Avengers strike team" />
+                <img src={`${import.meta.env.BASE_URL}avengers.svg`} alt="Avengers strike team" />
                 <span className="clash-label">AVENGERS</span>
               </div>
             </div>
@@ -281,6 +284,30 @@ export default function Battle({ team, missions = [], assignments = {}, initialM
 
           <div className="battle-log" ref={logRef}>
             {log.map((l, i) => <div key={i} className={`log-line ${l.cls}`}>{l.msg}</div>)}
+          </div>
+        </div>
+      )}
+
+      {outcome && !resultDismissed && (
+        <div className="overlay" onClick={() => setResultDismissed(true)}>
+          <div
+            className={`db-detail-card battle-result-card ${outcome}`}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="battle-result-title">{outcome === 'victory' ? 'VICTORY' : 'DEFEAT'}</div>
+            <div className="battle-result-sub">
+              {outcome === 'victory'
+                ? `${villainName} has been neutralized in ${battle?.round ?? 0} rounds.`
+                : `Squad wiped out by ${villainName} after ${battle?.round ?? 0} rounds.`}
+            </div>
+            <div className="battle-result-actions">
+              <button className="btn btn-engage" onClick={() => setResultDismissed(true)}>
+                CONTINUE
+              </button>
+              <button className="btn btn-small" onClick={resetEngagement}>
+                ⟲ NEW ENGAGEMENT
+              </button>
+            </div>
           </div>
         </div>
       )}
