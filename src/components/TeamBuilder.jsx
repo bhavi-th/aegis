@@ -1,4 +1,5 @@
 import { AVENGERS, overallRating } from '../data';
+import CharacterAvatar from './CharacterAvatar';
 
 export default function TeamBuilder({ missions, team, toggleHero, launchMission }) {
   const minMet = team.length >= 4;
@@ -28,9 +29,13 @@ export default function TeamBuilder({ missions, team, toggleHero, launchMission 
                   onClick={() => toggleHero(h.id)}
                   style={{ '--hero-color': h.color }}
                 >
-                  <div className="select-dot" style={{ background: h.color }} />
-                  <div className="select-name">{h.name}</div>
-                  <div className="select-role">{h.role} · PWR {overallRating(h)}</div>
+                  <div className="select-avatar-row">
+                    <CharacterAvatar hero={h} size="small" />
+                    <div>
+                      <div className="select-name">{h.name}</div>
+                      <div className="select-role">{h.role} · PWR {overallRating(h)}</div>
+                    </div>
+                  </div>
                   {inTeam && <div className="select-check">✓</div>}
                 </button>
               );

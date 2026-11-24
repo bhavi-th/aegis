@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AVENGERS } from '../data';
+import { AVENGERS, overallRating } from '../data';
 
 function StatBar({ label, value, color }) {
   return (
@@ -35,26 +35,35 @@ export default function Database({ team = [], onToggleHero }) {
       </div>
 
       <div className="db-grid">
-        {filtered.map(h => (
+        {filtered.map((h, i) => (
           <div
             key={h.id}
             className={`db-card ${selected?.id === h.id ? 'selected' : ''}`}
             onClick={() => setSelected(h)}
             style={{ '--hero-color': h.color }}
           >
-            <div className="db-card-header">
-              <div className="db-portrait" style={{ background: `linear-gradient(135deg, ${h.color}33, ${h.color}11)` }}>
-                <span className="db-initial">{h.name.split(' ').map(w => w[0]).join('')}</span>
+            <div className="db-card-media">
+              <img className="db-card-img" src={h.image} alt={h.name} loading="lazy" />
+              <div className="db-card-shade" />
+              <div className="db-card-media-top">
+                <span className="db-file-no">FILE {String(i + 1).padStart(2, '0')} / {String(filtered.length).padStart(2, '0')}</span>
+                <span className="db-team-tag">{h.team}</span>
               </div>
-              <div>
+              <div className="db-card-media-info">
                 <div className="db-name">{h.name}</div>
                 <div className="db-alias">{h.alias}</div>
               </div>
             </div>
-            <div className="db-role">{h.role}</div>
-            <div className="db-stats-mini">
-              <StatBar label="PWR" value={h.stats.power} color={h.color} />
-              <StatBar label="SPD" value={h.stats.speed} color={h.color} />
+            <div className="db-card-body">
+              <div className="db-role">{h.role}</div>
+              <div className="db-stats-mini">
+                <StatBar label="PWR" value={h.stats.power} color={h.color} />
+                <StatBar label="SPD" value={h.stats.speed} color={h.color} />
+              </div>
+              <div className="db-card-foot">
+                <span className="db-foot-label">AEGIS // DOSSIER</span>
+                <span className="db-foot-rating">{overallRating(h)}<i>/100</i></span>
+              </div>
             </div>
           </div>
         ))}
@@ -64,12 +73,12 @@ export default function Database({ team = [], onToggleHero }) {
         <div className="db-detail overlay" onClick={() => setSelected(null)}>
           <div className="db-detail-card" onClick={e => e.stopPropagation()}>
             <button className="close-btn" onClick={() => setSelected(null)}>✕</button>
-            <div className="db-detail-header" style={{ borderColor: selected.color }}>
-              <div className="db-portrait large" style={{ background: `linear-gradient(135deg, ${selected.color}, ${selected.color}44)` }}>
-                <span>{selected.name.split(' ').map(w => w[0]).join('')}</span>
-              </div>
-              <div>
-                <h2 style={{ color: selected.color }}>{selected.name}</h2>
+            <div className="db-detail-media" style={{ '--hero-color': selected.color }}>
+              <img className="db-detail-img" src={selected.image} alt={selected.name} />
+              <div className="db-detail-shade" />
+              <div className="db-detail-media-info">
+                <span className="db-file-no">AEGIS // AVENGERS DB</span>
+                <h2>{selected.name}</h2>
                 <div className="db-alias">{selected.alias}</div>
                 <div className="db-role">{selected.role}</div>
               </div>

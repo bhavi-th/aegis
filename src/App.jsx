@@ -36,6 +36,12 @@ export default function App() {
   const [clock, setClock] = useState(new Date());
   const [battlePreset, setBattlePreset] = useState(null);
 
+  // page background image per tab
+  useEffect(() => {
+    document.body.classList.toggle('bg-home', tab === 'dashboard');
+    document.body.classList.toggle('bg-other', tab !== 'dashboard');
+  }, [tab]);
+
   // live clock
   useEffect(() => {
     const t = setInterval(() => setClock(new Date()), 1000);
@@ -106,7 +112,12 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <div className="logo">
-          <span className="logo-emblem">🛡</span>
+          <span className="logo-emblem" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+              <path d="M12 2 4.5 5v6c0 4.6 3.2 8 7.5 10 4.3-2 7.5-5.4 7.5-10V5L12 2Z" />
+              <path d="m8.8 11.8 2.2 2.2 4.2-4.4" />
+            </svg>
+          </span>
           <div>
             <div className="logo-title">S.H.I.E.L.D.</div>
             <div className="logo-sub">STRATEGIC HOMELAND INTERVENTION · ENFORCEMENT &amp; LOGISTICS</div>
@@ -125,6 +136,7 @@ export default function App() {
             key={t.id}
             className={`nav-btn ${tab === t.id ? 'active' : ''}`}
             onClick={() => setTab(t.id)}
+            aria-current={tab === t.id ? 'page' : undefined}
           >
             <span className="nav-icon">{t.icon}</span> {t.label}
           </button>

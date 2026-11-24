@@ -1,6 +1,7 @@
 export const AVENGERS = [
   {
     id: 'iron-man',
+    image: import.meta.env.BASE_URL + 'avengers/iron-man.png',
     name: 'Iron Man',
     alias: 'Tony Stark',
     team: 'Avengers',
@@ -12,6 +13,7 @@ export const AVENGERS = [
   },
   {
     id: 'captain-america',
+    image: import.meta.env.BASE_URL + 'avengers/captain-america.png',
     name: 'Captain America',
     alias: 'Steve Rogers',
     team: 'Avengers',
@@ -23,6 +25,7 @@ export const AVENGERS = [
   },
   {
     id: 'thor',
+    image: import.meta.env.BASE_URL + 'avengers/thor.png',
     name: 'Thor',
     alias: 'God of Thunder',
     team: 'Avengers',
@@ -34,6 +37,7 @@ export const AVENGERS = [
   },
   {
     id: 'hulk',
+    image: import.meta.env.BASE_URL + 'avengers/hulk.png',
     name: 'Hulk',
     alias: 'Bruce Banner',
     team: 'Avengers',
@@ -45,6 +49,7 @@ export const AVENGERS = [
   },
   {
     id: 'black-widow',
+    image: import.meta.env.BASE_URL + 'avengers/black-widow.png',
     name: 'Black Widow',
     alias: 'Natasha Romanoff',
     team: 'Avengers',
@@ -56,6 +61,7 @@ export const AVENGERS = [
   },
   {
     id: 'hawkeye',
+    image: import.meta.env.BASE_URL + 'avengers/hawkeye.png',
     name: 'Hawkeye',
     alias: 'Clint Barton',
     team: 'Avengers',
@@ -67,6 +73,7 @@ export const AVENGERS = [
   },
   {
     id: 'falcon',
+    image: import.meta.env.BASE_URL + 'avengers/falcon.png',
     name: 'Falcon',
     alias: 'Sam Wilson',
     team: 'Avengers',
@@ -78,6 +85,7 @@ export const AVENGERS = [
   },
   {
     id: 'vision',
+    image: import.meta.env.BASE_URL + 'avengers/vision.png',
     name: 'Vision',
     alias: 'Jonas',
     team: 'Avengers',
@@ -89,6 +97,7 @@ export const AVENGERS = [
   },
   {
     id: 'scarlet-witch',
+    image: import.meta.env.BASE_URL + 'avengers/scarlet-witch.png',
     name: 'Scarlet Witch',
     alias: 'Wanda Maximoff',
     team: 'Avengers',
@@ -100,6 +109,7 @@ export const AVENGERS = [
   },
   {
     id: 'doctor-strange',
+    image: import.meta.env.BASE_URL + 'avengers/doctor-strange.png',
     name: 'Doctor Strange',
     alias: 'Stephen Strange',
     team: 'Avengers',
